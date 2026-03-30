@@ -64,11 +64,25 @@ class SchoolSeeder extends Seeder
             'role' => 'student',
         ]);
 
+        $class1 = SchoolClass::create([
+            'name' => 'Class 9',
+            'section' => 'A',
+            'academic_year' => 2026,
+            'description' => 'Class 9 Section A',
+        ]);
+
+        $class2 = SchoolClass::create([
+            'name' => 'Class 9',
+            'section' => 'B',
+            'academic_year' => 2026,
+            'description' => 'Class 9 Section B',
+        ]);
+
         $class = SchoolClass::create([
             'name' => 'Class 10',
             'section' => 'A',
             'academic_year' => 2026,
-            'description' => 'Default class',
+            'description' => 'Class 10 Section A',
         ]);
 
         $student = Student::create([
@@ -87,6 +101,9 @@ class SchoolSeeder extends Seeder
 
         $math = Subject::create(['name' => 'Mathematics', 'code' => 'MATH']);
         $science = Subject::create(['name' => 'Science', 'code' => 'SCI']);
+        $english = Subject::create(['name' => 'English', 'code' => 'ENG']);
+        $history = Subject::create(['name' => 'History', 'code' => 'HIST']);
+        $geography = Subject::create(['name' => 'Geography', 'code' => 'GEO']);
 
         \DB::table('teacher_subject_class')->insert([
             ['teacher_id' => $teacher->id, 'subject_id' => $math->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],

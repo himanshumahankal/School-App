@@ -2,19 +2,37 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { GraduationCap, LayoutDashboard, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: LayoutGrid,
-    },
-];
-
 export function AppSidebar() {
+    const { auth } = usePage().props as unknown as { auth: { user: { role: string } } };
+    const userRole = auth?.user?.role;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            url: '/dashboard',
+            icon: LayoutDashboard,
+        },
+    ];
+
+    if (userRole === 'admin') {
+        mainNavItems.push(
+            {
+                title: 'Teachers',
+                url: '/admin/teachers',
+                icon: Users,
+            },
+            {
+                title: 'Students',
+                url: '/admin/students',
+                icon: GraduationCap,
+            }
+        );
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Chat\ChatController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
         Route::get('dashboard', fn () => Inertia::render('admin/dashboard'))->name('dashboard');
         Route::get('chat', [ChatController::class, 'index'])->name('chat');
+
+        Route::resource('teachers', TeacherController::class);
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
     });
 
     Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {
