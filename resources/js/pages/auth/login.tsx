@@ -90,13 +90,65 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </Button>
                 </div>
 
-                <div className="text-muted-foreground text-center text-sm">
-                    Don't have an account?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        Sign up
-                    </TextLink>
-                </div>
             </form>
+
+            <div className="mt-6 rounded-lg border bg-muted/50 p-4">
+                <p className="mb-3 text-sm font-medium text-muted-foreground">Test Accounts (Password: 123456)</p>
+                <div className="grid gap-2 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Admin:</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData('email', 'admin@school.com');
+                                setData('password', '123456');
+                            }}
+                            className="font-mono text-primary hover:underline"
+                        >
+                            admin@school.com
+                        </button>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Teacher:</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData('email', 'test_teacher@school.com');
+                                setData('password', '123456');
+                            }}
+                            className="font-mono text-primary hover:underline"
+                        >
+                            test_teacher@school.com
+                        </button>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Parent:</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData('email', 'test_parent@school.com');
+                                setData('password', '123456');
+                            }}
+                            className="font-mono text-primary hover:underline"
+                        >
+                            test_parent@school.com
+                        </button>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Student:</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData('email', 'test_student@school.com');
+                                setData('password', '123456');
+                            }}
+                            className="font-mono text-primary hover:underline"
+                        >
+                            test_student@school.com
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
         </AuthLayout>
