@@ -61,7 +61,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('class_id')->constrained('school_classes')->onDelete('cascade');
             $table->string('name');
-            $table->string('roll_number', 100)->unique();
+            $table->string('roll_number', 100);
             $table->date('date_of_birth')->nullable();
             $table->string('gender')->nullable();
             $table->string('phone', 20)->nullable();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SchoolClass;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -38,7 +39,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return array_merge(parent::share($request), [
+        $shared = array_merge(parent::share($request), [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
@@ -46,5 +47,11 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? $request->user()->only('id', 'name', 'email', 'role') : null,
             ],
         ]);
+
+        if ($request->user() && $request->user()->role === 'admin') {
+            $shared['classes'] = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
+        }
+
+        return $shared;
     }
 }

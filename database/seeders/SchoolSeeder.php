@@ -64,30 +64,23 @@ class SchoolSeeder extends Seeder
             'role' => 'student',
         ]);
 
-        $class1 = SchoolClass::create([
-            'name' => 'Class 9',
-            'section' => 'A',
-            'academic_year' => 2026,
-            'description' => 'Class 9 Section A',
-        ]);
+        $classes = [];
+        $sections = ['A', 'B', 'C'];
 
-        $class2 = SchoolClass::create([
-            'name' => 'Class 9',
-            'section' => 'B',
-            'academic_year' => 2026,
-            'description' => 'Class 9 Section B',
-        ]);
+        for ($classNum = 1; $classNum <= 10; $classNum++) {
+            foreach ($sections as $section) {
+                $classes[] = SchoolClass::create([
+                    'name' => 'Class '.$classNum,
+                    'section' => $section,
+                    'academic_year' => 2026,
+                    'description' => 'Class '.$classNum.' Section '.$section,
+                ]);
+            }
+        }
 
-        $class = SchoolClass::create([
-            'name' => 'Class 10',
-            'section' => 'A',
-            'academic_year' => 2026,
-            'description' => 'Class 10 Section A',
-        ]);
-
-        $student = Student::create([
+        $testStudent = Student::create([
             'user_id' => $studentUser->id,
-            'class_id' => $class->id,
+            'class_id' => $classes[0]->id,
             'name' => 'Test Student',
             'roll_number' => '001',
             'date_of_birth' => '2010-01-15',
@@ -97,18 +90,84 @@ class SchoolSeeder extends Seeder
             'admission_date' => now(),
         ]);
 
-        $student->parents()->attach($parent->id, ['relation' => 'father']);
+        $testStudent->parents()->attach($parent->id, ['relation' => 'father']);
+
+        $studentNames = [
+            'Aarav Patel', 'Aadhira Sharma', 'Aarush Gupta', 'Ananya Singh', 'Arjun Verma',
+            'Diya Kapoor', 'Vivaan Reddy', 'Ishita Nair', 'Reyansh Kumar', 'Kavya Joshi',
+            'Shriya Mehta', 'Aditya Iyer', 'Anika Chatterjee', 'Kabir Malhotra', 'Myra Das',
+            'Rudra Banerjee', 'Prisha Khatri', 'Shaurya Shah', 'Ira Saxena', 'Ritwik Gupta',
+            'Aarohi Desai', 'Vihaan Rao', 'Navya Menon', 'Ayaan Khan', 'Saisha Patel',
+            'Madhav Bhatt', 'Riya Deshmukh', 'Hiranv Reddy', 'Anvi Sharma', 'Ritij Grover',
+            'Yashika Tiwari', 'Devansh Agarwal', 'Shreya Mishra', 'Omkar Kulkarni', 'Ananya Yadav',
+            'Kian Shah', 'Myra Singh', 'Lakshit Verma', 'Ishani Patel', 'Aarnav Kumar',
+            'Kriti Choudhary', 'Parthiv Mehta', 'Nayantara Bose', 'Rian Kapoor', 'Samaira Jain',
+            'Arin Srivastava', 'Tanvi Mukherjee', 'Yug Dey', 'Rhea Banerjee', 'Harshvardhan Rao',
+        ];
+
+        $genders = ['male', 'female'];
+        $studentIndex = 0;
+        $rollNumber = 1;
+        $globalStudentIndex = 0;
+
+        foreach ($classes as $class) {
+            $studentsInClass = rand(15, 25);
+
+            for ($i = 0; $i < $studentsInClass; $i++) {
+                $studentName = $studentNames[$studentIndex % count($studentNames)];
+                $firstName = explode(' ', $studentName)[0];
+                $email = strtolower(str_replace(' ', '.', $firstName)).$globalStudentIndex.'@student.com';
+
+                $studentUser = User::create([
+                    'name' => $studentName,
+                    'email' => $email,
+                    'password' => Hash::make('123456'),
+                    'role' => 'student',
+                ]);
+
+                $year = rand(2008, 2015);
+                $month = rand(1, 12);
+                $day = rand(1, 28);
+
+                $student = Student::create([
+                    'user_id' => $studentUser->id,
+                    'class_id' => $class->id,
+                    'name' => $studentName,
+                    'roll_number' => str_pad($rollNumber, 3, '0', STR_PAD_LEFT),
+                    'date_of_birth' => sprintf('%d-%02d-%02d', $year, $month, $day),
+                    'gender' => $genders[array_rand($genders)],
+                    'phone' => '555'.rand(1000000, 9999999),
+                    'address' => rand(1, 999).' Main Street, Neral',
+                    'admission_date' => now()->subDays(rand(30, 365)),
+                ]);
+
+                if ($studentIndex % 3 == 0) {
+                    $student->parents()->attach($parent->id, ['relation' => 'father']);
+                }
+
+                $rollNumber++;
+                $studentIndex++;
+                $globalStudentIndex++;
+            }
+
+            $rollNumber = 1;
+        }
 
         $math = Subject::create(['name' => 'Mathematics', 'code' => 'MATH']);
         $science = Subject::create(['name' => 'Science', 'code' => 'SCI']);
         $english = Subject::create(['name' => 'English', 'code' => 'ENG']);
         $history = Subject::create(['name' => 'History', 'code' => 'HIST']);
         $geography = Subject::create(['name' => 'Geography', 'code' => 'GEO']);
+        $hindi = Subject::create(['name' => 'Hindi', 'code' => 'HIN']);
+        $marathi = Subject::create(['name' => 'Marathi', 'code' => 'MAR']);
 
-        \DB::table('teacher_subject_class')->insert([
-            ['teacher_id' => $teacher->id, 'subject_id' => $math->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],
-            ['teacher_id' => $teacher->id, 'subject_id' => $science->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        foreach ($classes as $class) {
+            \DB::table('teacher_subject_class')->insert([
+                ['teacher_id' => $teacher->id, 'subject_id' => $math->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],
+                ['teacher_id' => $teacher->id, 'subject_id' => $science->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],
+                ['teacher_id' => $teacher->id, 'subject_id' => $english->id, 'class_id' => $class->id, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
 
         $announcementGroup = ChatGroup::create([
             'name' => 'Announcements',
@@ -154,10 +213,10 @@ class SchoolSeeder extends Seeder
         ]);
 
         $classGroup = ChatGroup::create([
-            'name' => 'Class 10A',
+            'name' => 'Class 1A',
             'type' => 'class',
-            'class_id' => $class->id,
-            'description' => 'Class 10A group',
+            'class_id' => $classes[0]->id,
+            'description' => 'Class 1A group',
         ]);
         ChatGroupMember::create([
             'chat_group_id' => $classGroup->id,

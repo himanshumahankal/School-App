@@ -18,17 +18,20 @@ class StudentController extends Controller
                 ->orWhere('roll_number', 'like', '%'.$request->search.'%');
         }
 
-        if ($request->has('class_id') && $request->class_id) {
-            $query->where('class_id', $request->class_id);
+        if ($request->has('class') && $request->class) {
+            $query->whereHas('class', function ($q) use ($request) {
+                $q->where('name', $request->class);
+            });
         }
 
         $students = $query->orderBy('created_at', 'desc')->paginate(10);
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
+        $uniqueClasses = $classes->unique('name')->values();
 
         return inertia('admin/students/index', [
             'students' => $students,
-            'classes' => $classes,
-            'filters' => $request->only(['search', 'class_id']),
+            'classes' => $uniqueClasses,
+            'filters' => $request->only(['search', 'class']),
         ]);
     }
 }
