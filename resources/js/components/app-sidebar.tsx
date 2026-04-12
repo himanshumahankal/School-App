@@ -1,14 +1,14 @@
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { GraduationCap, LayoutDashboard, Users, ChevronDown } from 'lucide-react';
+import { ChevronDown, GraduationCap, LayoutDashboard, Users } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
-    const { auth, classes } = usePage().props as unknown as { 
-        auth: { user: { role: string } }; 
-        classes?: { id: number; name: string; section: string | null }[] 
+    const { auth, classes } = usePage().props as unknown as {
+        auth: { user: { role: string } };
+        classes?: { id: number; name: string; section: string | null }[];
     };
     const userRole = auth?.user?.role;
     const allClasses = classes || [];
@@ -57,6 +57,15 @@ export function AppSidebar() {
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
+                                <SidebarMenuButton asChild>
+                                    <Link href="/admin/parents">
+                                        <UsersRound className="h-5 w-5" />
+                                        <span>Parents</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
                                 <SidebarMenuButton onClick={() => setStudentsOpen(!studentsOpen)} className="w-full cursor-pointer">
                                     <GraduationCap className="h-5 w-5" />
                                     <span className="flex-1">Students</span>
@@ -76,7 +85,10 @@ export function AppSidebar() {
                                     {uniqueClassNames.map((className: string) => (
                                         <SidebarMenuItem key={className}>
                                             <SidebarMenuButton asChild className="text-sm">
-                                                <Link href={`/admin/students?class=${encodeURIComponent(className)}`} className="text-slate-400 hover:text-white">
+                                                <Link
+                                                    href={`/admin/students?class=${encodeURIComponent(className)}`}
+                                                    className="text-slate-400 hover:text-white"
+                                                >
                                                     {className}
                                                 </Link>
                                             </SidebarMenuButton>
