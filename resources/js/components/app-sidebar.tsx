@@ -1,7 +1,7 @@
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, GraduationCap, LayoutDashboard, Users } from 'lucide-react';
+import { ChevronDown, GraduationCap, LayoutDashboard, Users, UsersRound } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 

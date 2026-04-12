@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Chat\ChatController;
@@ -37,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('teachers', TeacherController::class);
         Route::get('students', [StudentController::class, 'index'])->name('students.index');
-        Route::get('parents', [ParentController::class, 'index'])->name('parents.index');
+        Route::resource('parents', ParentController::class);
     });
 
     Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {

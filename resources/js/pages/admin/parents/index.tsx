@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, GraduationCap, Search, UserPlus, Users, UsersRound } from 'lucide-react';
 import { useState } from 'react';
 
@@ -10,7 +10,7 @@ interface Parent {
     phone: string | null;
     occupation: string | null;
     relation: string | null;
-    student: {
+    students: {
         id: number;
         name: string;
         roll_number: string;
@@ -18,8 +18,9 @@ interface Parent {
             id: number;
             name: string;
             section: string | null;
-        };
-    };
+        } | null;
+        relation: string;
+    }[];
 }
 
 export default function ParentsIndex() {
@@ -36,20 +37,27 @@ export default function ParentsIndex() {
     const [search, setSearch] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
 
+    const { delete: destroy } = useForm({});
+
     const filteredParents = parents.data.filter((parent) => {
+        const firstStudent = parent.students[0];
+        if (!firstStudent) return false;
+
         const matchesSearch =
             parent.name.toLowerCase().includes(search.toLowerCase()) ||
             parent.email.toLowerCase().includes(search.toLowerCase()) ||
-            parent.student.name.toLowerCase().includes(search.toLowerCase());
+            firstStudent.name.toLowerCase().includes(search.toLowerCase());
 
-        const matchesClass = !selectedClass || parent.student.class.name === selectedClass;
+        const matchesClass = !selectedClass || (firstStudent.class?.name || '') === selectedClass;
 
         return matchesSearch && matchesClass;
     });
 
     const parentsByClass = filteredParents.reduce(
         (acc, parent) => {
-            const className = parent.student.class.name;
+            const firstStudent = parent.students[0];
+            if (!firstStudent) return acc;
+            const className = firstStudent.class?.name || 'No Class';
             if (!acc[className]) {
                 acc[className] = [];
             }
@@ -58,6 +66,12 @@ export default function ParentsIndex() {
         },
         {} as Record<string, Parent[]>,
     );
+
+    const handleDelete = (parentId: number) => {
+        if (confirm('Are you sure you want to delete this parent?')) {
+            destroy(route('admin.parents.destroy', parentId));
+        }
+    };
 
     const avatarColors = [
         'from-blue-500 to-blue-600',
@@ -88,10 +102,13 @@ export default function ParentsIndex() {
                                 <p className="mt-1 text-slate-400">Manage parents linked to students by class</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-cyan-500">
+                                <Link
+                                    href="/admin/parents/create"
+                                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-cyan-500"
+                                >
                                     <UserPlus className="h-4 w-4" />
                                     Add Parent
-                                </button>
+                                </Link>
                             </div>
                         </div>
 
@@ -224,113 +241,96 @@ export default function ParentsIndex() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-700/50">
-                                                    {classParents.map((parent, index) => (
-                                                        <tr key={parent.id} className="group transition-all hover:bg-slate-700/30">
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div
-                                                                        className={`h-11 w-11 rounded-xl bg-gradient-to-br ${avatarColors[index % 7]} flex items-center justify-center text-sm font-semibold text-white shadow-lg`}
-                                                                    >
-                                                                        {parent.name.charAt(0).toUpperCase()}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="font-medium text-white">{parent.name}</p>
-                                                                        <p className="text-sm text-slate-400">{parent.email}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div
-                                                                        className={`h-8 w-8 rounded-lg bg-gradient-to-br ${avatarColors[(index + 1) % 7]} flex items-center justify-center text-xs font-semibold text-white`}
-                                                                    >
-                                                                        {parent.student.name.charAt(0).toUpperCase()}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-medium text-white">{parent.student.name}</p>
-                                                                        <p className="font-mono text-xs text-slate-500">
-                                                                            #{parent.student.roll_number}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-1.5 text-sm font-medium text-blue-300">
-                                                                    {parent.relation || 'Parent'}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="space-y-1">
-                                                                    <p className="text-sm text-slate-300">{parent.phone || 'N/A'}</p>
-                                                                    <p className="text-xs text-slate-500">{parent.occupation || 'N/A'}</p>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
-                                                                        title="View"
-                                                                    >
-                                                                        <svg
-                                                                            className="h-4 w-4 text-slate-400"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            viewBox="0 0 24 24"
+                                                    {classParents.map((parent, index) => {
+                                                        const firstStudent = parent.students[0];
+                                                        return (
+                                                            <tr key={parent.id} className="group transition-all hover:bg-slate-700/30">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div
+                                                                            className={`h-11 w-11 rounded-xl bg-gradient-to-br ${avatarColors[index % 7]} flex items-center justify-center text-sm font-semibold text-white shadow-lg`}
                                                                         >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={2}
-                                                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                                            />
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={2}
-                                                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                                            />
-                                                                        </svg>
-                                                                    </button>
-                                                                    <button
-                                                                        className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
-                                                                        title="Edit"
-                                                                    >
-                                                                        <svg
-                                                                            className="h-4 w-4 text-slate-400"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            viewBox="0 0 24 24"
+                                                                            {parent.name.charAt(0).toUpperCase()}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="font-medium text-white">{parent.name}</p>
+                                                                            <p className="text-sm text-slate-400">{parent.email}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    {firstStudent && (
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div
+                                                                                className={`h-8 w-8 rounded-lg bg-gradient-to-br ${avatarColors[(index + 1) % 7]} flex items-center justify-center text-xs font-semibold text-white`}
+                                                                            >
+                                                                                {firstStudent.name.charAt(0).toUpperCase()}
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-sm font-medium text-white">{firstStudent.name}</p>
+                                                                                <p className="font-mono text-xs text-slate-500">
+                                                                                    #{firstStudent.roll_number}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-1.5 text-sm font-medium text-blue-300">
+                                                                        {firstStudent?.relation || 'Parent'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-sm text-slate-300">{parent.phone || 'N/A'}</p>
+                                                                        <p className="text-xs text-slate-500">{parent.occupation || 'N/A'}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Link
+                                                                            href={route('admin.parents.edit', parent.id)}
+                                                                            className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
+                                                                            title="Edit"
                                                                         >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={2}
-                                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                                                            />
-                                                                        </svg>
-                                                                    </button>
-                                                                    <button
-                                                                        className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <svg
-                                                                            className="h-4 w-4 text-red-400"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            viewBox="0 0 24 24"
+                                                                            <svg
+                                                                                className="h-4 w-4 text-slate-400"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    strokeWidth={2}
+                                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                                                                />
+                                                                            </svg>
+                                                                        </Link>
+                                                                        <button
+                                                                            onClick={() => handleDelete(parent.id)}
+                                                                            className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
+                                                                            title="Delete"
                                                                         >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={2}
-                                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                                            />
-                                                                        </svg>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
+                                                                            <svg
+                                                                                className="h-4 w-4 text-red-400"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    strokeWidth={2}
+                                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                                                />
+                                                                            </svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
                                         </div>
