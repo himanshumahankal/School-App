@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
@@ -13,7 +12,7 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'class_id', 'name', 'roll_number', 'date_of_birth', 'gender', 'phone', 'address', 'admission_date',
+        'user_id', 'class_id', 'name', 'roll_number', 'date_of_birth', 'gender', 'phone', 'address', 'admission_date', 'parent_id', 'relation',
     ];
 
     protected $casts = [
@@ -31,10 +30,9 @@ class Student extends Model
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    public function parents(): BelongsToMany
+    public function parent(): BelongsTo
     {
-        return $this->belongsToMany(ParentModel::class, 'student_parent', 'student_id', 'parent_id')
-            ->withPivot('relation');
+        return $this->belongsTo(ParentModel::class);
     }
 
     public function attendances(): HasMany

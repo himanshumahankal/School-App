@@ -17,10 +17,10 @@ class ParentController extends Controller
     {
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
 
-        $parents = ParentModel::with(['user', 'students.class'])
+        $parents = ParentModel::with(['user', 'student.class'])
             ->get()
             ->map(function ($parent) {
-                $firstStudent = $parent->students->first();
+                $student = $parent->student;
 
                 return [
                     'id' => $parent->id,
@@ -30,27 +30,26 @@ class ParentController extends Controller
                     'phone' => $parent->phone,
                     'occupation' => $parent->occupation,
                     'address' => $parent->address,
-                    'relation' => $firstStudent ? $firstStudent->pivot->relation : null,
+                    'relation' => $student ? $student->relation : null,
                     'user' => [
                         'email' => $parent->user->email ?? null,
                     ],
-                    'students' => $parent->students->map(function ($student) {
-                        return [
-                            'id' => $student->id,
-                            'name' => $student->name,
-                            'roll_number' => $student->roll_number,
-                            'class' => $student->class ? [
-                                'id' => $student->class->id,
-                                'name' => $student->class->name,
-                                'section' => $student->class->section,
-                            ] : null,
-                            'relation' => $student->pivot->relation,
-                        ];
-                    }),
+                    'student' => $student ? [
+                        'id' => $student->id,
+                        'name' => $student->name,
+                        'roll_number' => $student->roll_number,
+                        'class' => $student->class ? [
+                            'id' => $student->class->id,
+                            'name' => $student->class->name,
+                            'section' => $student->class->section,
+                        ] : null,
+                        'relation' => $student->relation,
+                    ] : null,
                 ];
             });
 
-        $students = Student::with('class')
+        $studentsWithoutParent = Student::with('class')
+            ->whereNull('parent_id')
             ->get()
             ->map(function ($student) {
                 return [
@@ -71,7 +70,7 @@ class ParentController extends Controller
                 'total' => $parents->count(),
             ],
             'classes' => $classes,
-            'students' => $students,
+            'availableStudents' => $studentsWithoutParent,
         ]);
     }
 
@@ -79,7 +78,8 @@ class ParentController extends Controller
     {
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
 
-        $students = Student::with('class')
+        $studentsWithoutParent = Student::with('class')
+            ->whereNull('parent_id')
             ->get()
             ->map(function ($student) {
                 return [
@@ -96,7 +96,7 @@ class ParentController extends Controller
 
         return inertia('admin/parents/create', [
             'classes' => $classes,
-            'students' => $students,
+            'availableStudents' => $studentsWithoutParent,
         ]);
     }
 
@@ -112,6 +112,12 @@ class ParentController extends Controller
             'student_id' => 'required|exists:students,id',
             'relation' => 'required|string|max:50',
         ]);
+
+        $student = Student::find($validated['student_id']);
+
+        if ($student->parent_id) {
+            return back()->withErrors(['student_id' => 'This student already has a parent assigned.']);
+        }
 
         $user = User::create([
             'name' => $validated['name'],
@@ -129,7 +135,10 @@ class ParentController extends Controller
             'address' => $validated['address'] ?? null,
         ]);
 
-        $parent->students()->attach($validated['student_id'], ['relation' => $validated['relation']]);
+        $student->update([
+            'parent_id' => $parent->id,
+            'relation' => $validated['relation'],
+        ]);
 
         return redirect()->route('admin.parents.index')
             ->with('success', 'Parent added successfully');
@@ -137,11 +146,11 @@ class ParentController extends Controller
 
     public function edit(ParentModel $parent)
     {
-        $parent->load(['user', 'students.class']);
+        $parent->load(['user', 'student.class']);
 
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
 
-        $students = Student::with('class')
+        $allStudents = Student::with('class')
             ->get()
             ->map(function ($student) {
                 return [
@@ -168,22 +177,20 @@ class ParentController extends Controller
                 'user' => [
                     'email' => $parent->user->email ?? null,
                 ],
-                'students' => $parent->students->map(function ($student) {
-                    return [
-                        'id' => $student->id,
-                        'name' => $student->name,
-                        'roll_number' => $student->roll_number,
-                        'class' => $student->class ? [
-                            'id' => $student->class->id,
-                            'name' => $student->class->name,
-                            'section' => $student->class->section,
-                        ] : null,
-                        'relation' => $student->pivot->relation,
-                    ];
-                }),
+                'student' => $parent->student ? [
+                    'id' => $parent->student->id,
+                    'name' => $parent->student->name,
+                    'roll_number' => $parent->student->roll_number,
+                    'class' => $parent->student->class ? [
+                        'id' => $parent->student->class->id,
+                        'name' => $parent->student->class->name,
+                        'section' => $parent->student->class->section,
+                    ] : null,
+                    'relation' => $parent->student->relation,
+                ] : null,
             ],
             'classes' => $classes,
-            'students' => $students,
+            'allStudents' => $allStudents,
         ]);
     }
 
@@ -199,6 +206,12 @@ class ParentController extends Controller
             'student_id' => 'required|exists:students,id',
             'relation' => 'required|string|max:50',
         ]);
+
+        $newStudent = Student::find($validated['student_id']);
+
+        if ($newStudent->parent_id && $newStudent->parent_id !== $parent->id) {
+            return back()->withErrors(['student_id' => 'This student already has a parent assigned.']);
+        }
 
         $parent->user->update([
             'name' => $validated['name'],
@@ -217,7 +230,14 @@ class ParentController extends Controller
             'address' => $validated['address'] ?? null,
         ]);
 
-        $parent->students()->sync([$validated['student_id'] => ['relation' => $validated['relation']]]);
+        if ($parent->student) {
+            $parent->student->update(['parent_id' => null, 'relation' => null]);
+        }
+
+        $newStudent->update([
+            'parent_id' => $parent->id,
+            'relation' => $validated['relation'],
+        ]);
 
         return redirect()->route('admin.parents.index')
             ->with('success', 'Parent updated successfully');
@@ -225,8 +245,11 @@ class ParentController extends Controller
 
     public function destroy(ParentModel $parent)
     {
+        if ($parent->student) {
+            $parent->student->update(['parent_id' => null, 'relation' => null]);
+        }
+
         $parent->user->delete();
-        $parent->students()->detach();
         $parent->delete();
 
         return redirect()->route('admin.parents.index')

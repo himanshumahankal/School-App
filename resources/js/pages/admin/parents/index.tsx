@@ -9,8 +9,7 @@ interface Parent {
     email: string;
     phone: string | null;
     occupation: string | null;
-    relation: string | null;
-    students: {
+    student: {
         id: number;
         name: string;
         roll_number: string;
@@ -20,7 +19,7 @@ interface Parent {
             section: string | null;
         } | null;
         relation: string;
-    }[];
+    } | null;
 }
 
 export default function ParentsIndex() {
@@ -30,7 +29,7 @@ export default function ParentsIndex() {
             total: number;
         };
         classes: { id: number; name: string; section: string | null }[];
-        students: { id: number; name: string; roll_number: string; class: { name: string; section: string | null } }[];
+        availableStudents: { id: number; name: string; roll_number: string; class: { name: string; section: string | null } }[];
     };
 
     const { parents, classes } = pageProps;
@@ -40,24 +39,22 @@ export default function ParentsIndex() {
     const { delete: destroy } = useForm({});
 
     const filteredParents = parents.data.filter((parent) => {
-        const firstStudent = parent.students[0];
-        if (!firstStudent) return false;
+        if (!parent.student) return false;
 
         const matchesSearch =
             parent.name.toLowerCase().includes(search.toLowerCase()) ||
             parent.email.toLowerCase().includes(search.toLowerCase()) ||
-            firstStudent.name.toLowerCase().includes(search.toLowerCase());
+            parent.student.name.toLowerCase().includes(search.toLowerCase());
 
-        const matchesClass = !selectedClass || (firstStudent.class?.name || '') === selectedClass;
+        const matchesClass = !selectedClass || (parent.student.class?.name || '') === selectedClass;
 
         return matchesSearch && matchesClass;
     });
 
     const parentsByClass = filteredParents.reduce(
         (acc, parent) => {
-            const firstStudent = parent.students[0];
-            if (!firstStudent) return acc;
-            const className = firstStudent.class?.name || 'No Class';
+            if (!parent.student) return acc;
+            const className = parent.student.class?.name || 'No Class';
             if (!acc[className]) {
                 acc[className] = [];
             }
@@ -68,7 +65,7 @@ export default function ParentsIndex() {
     );
 
     const handleDelete = (parentId: number) => {
-        if (confirm('Are you sure you want to delete this parent?')) {
+        if (confirm('Are you sure you want to delete this parent? The student will become unassigned.')) {
             destroy(route('admin.parents.destroy', parentId));
         }
     };
@@ -99,7 +96,7 @@ export default function ParentsIndex() {
                             </Link>
                             <div className="flex-1">
                                 <h1 className="text-3xl font-bold tracking-tight text-white">Parents Management</h1>
-                                <p className="mt-1 text-slate-400">Manage parents linked to students by class</p>
+                                <p className="mt-1 text-slate-400">Manage parents (One-to-One with students)</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Link
@@ -242,7 +239,6 @@ export default function ParentsIndex() {
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-700/50">
                                                     {classParents.map((parent, index) => {
-                                                        const firstStudent = parent.students[0];
                                                         return (
                                                             <tr key={parent.id} className="group transition-all hover:bg-slate-700/30">
                                                                 <td className="px-6 py-4">
@@ -259,17 +255,19 @@ export default function ParentsIndex() {
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
-                                                                    {firstStudent && (
+                                                                    {parent.student && (
                                                                         <div className="flex items-center gap-3">
                                                                             <div
                                                                                 className={`h-8 w-8 rounded-lg bg-gradient-to-br ${avatarColors[(index + 1) % 7]} flex items-center justify-center text-xs font-semibold text-white`}
                                                                             >
-                                                                                {firstStudent.name.charAt(0).toUpperCase()}
+                                                                                {parent.student.name.charAt(0).toUpperCase()}
                                                                             </div>
                                                                             <div>
-                                                                                <p className="text-sm font-medium text-white">{firstStudent.name}</p>
+                                                                                <p className="text-sm font-medium text-white">
+                                                                                    {parent.student.name}
+                                                                                </p>
                                                                                 <p className="font-mono text-xs text-slate-500">
-                                                                                    #{firstStudent.roll_number}
+                                                                                    #{parent.student.roll_number}
                                                                                 </p>
                                                                             </div>
                                                                         </div>
@@ -277,7 +275,7 @@ export default function ParentsIndex() {
                                                                 </td>
                                                                 <td className="px-6 py-4">
                                                                     <span className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-1.5 text-sm font-medium text-blue-300">
-                                                                        {firstStudent?.relation || 'Parent'}
+                                                                        {parent.student?.relation || 'Parent'}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4">

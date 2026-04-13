@@ -24,7 +24,7 @@ interface Parent {
     user: {
         email: string;
     };
-    students: {
+    student: {
         id: number;
         name: string;
         roll_number: string;
@@ -34,18 +34,16 @@ interface Parent {
             section: string | null;
         } | null;
         relation: string;
-    }[];
+    } | null;
 }
 
 interface PageProps {
     parent: Parent;
-    students: Student[];
+    allStudents: Student[];
 }
 
 export default function EditParent() {
-    const { parent, students } = usePage<PageProps>().props;
-
-    const firstStudent = parent.students[0];
+    const { parent, allStudents } = usePage<PageProps>().props;
 
     const { data, setData, post, processing, errors } = useForm({
         name: parent.name,
@@ -54,8 +52,8 @@ export default function EditParent() {
         phone: parent.phone || '',
         occupation: parent.occupation || '',
         address: parent.address || '',
-        student_id: firstStudent?.id || ('' as number | ''),
-        relation: firstStudent?.relation || '',
+        student_id: parent.student?.id || ('' as number | ''),
+        relation: parent.student?.relation || '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -173,7 +171,7 @@ export default function EditParent() {
                                 </div>
                                 <div>
                                     <h2 className="font-semibold text-white">Student Link</h2>
-                                    <p className="text-sm text-slate-400">Link parent to a student</p>
+                                    <p className="text-sm text-slate-400">Link parent to a student (One-to-One)</p>
                                 </div>
                             </div>
 
@@ -189,7 +187,7 @@ export default function EditParent() {
                                         required
                                     >
                                         <option value="">Select a student</option>
-                                        {students.map((student) => (
+                                        {allStudents.map((student) => (
                                             <option key={student.id} value={student.id}>
                                                 {student.name} ({student.roll_number}) - {student.class?.name || 'No Class'}
                                             </option>

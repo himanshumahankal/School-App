@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ParentModel extends Model
 {
@@ -20,9 +20,8 @@ class ParentModel extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function students(): BelongsToMany
+    public function student(): HasOne
     {
-        return $this->belongsToMany(Student::class, 'student_parent', 'parent_id', 'student_id')
-            ->withPivot('relation');
+        return $this->hasOne(Student::class);
     }
 }
