@@ -22,6 +22,6 @@ class ParentModel extends Model
 
     public function student(): HasOne
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(Student::class, 'parent_id');
     }
 }

@@ -32,7 +32,7 @@ class Student extends Model
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(ParentModel::class);
+        return $this->belongsTo(ParentModel::class, 'parent_id');
     }
 
     public function attendances(): HasMany
