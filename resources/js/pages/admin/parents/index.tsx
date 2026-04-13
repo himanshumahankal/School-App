@@ -29,11 +29,12 @@ export default function ParentsIndex() {
             total: number;
         };
         classes: { id: number; name: string; section: string | null }[];
+        filters: { class?: string };
     };
 
-    const { parents, classes } = pageProps;
+    const { parents, classes, filters } = pageProps;
     const [search, setSearch] = useState('');
-    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedClass, setSelectedClass] = useState(filters.class || '');
 
     const avatarColors = [
         'from-blue-500 to-blue-600',

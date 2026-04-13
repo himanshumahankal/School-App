@@ -13,40 +13,46 @@ use Illuminate\Validation\Rule;
 
 class ParentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
 
-        $parents = ParentModel::with(['user', 'student.class'])
-            ->get()
-            ->map(function ($parent) {
-                $student = $parent->student;
+        $query = ParentModel::with(['user', 'student.class']);
 
-                return [
-                    'id' => $parent->id,
-                    'user_id' => $parent->user_id,
-                    'name' => $parent->name,
-                    'email' => $parent->email,
-                    'phone' => $parent->phone,
-                    'occupation' => $parent->occupation,
-                    'address' => $parent->address,
-                    'relation' => $student ? $student->relation : null,
-                    'user' => [
-                        'email' => $parent->user->email ?? null,
-                    ],
-                    'student' => $student ? [
-                        'id' => $student->id,
-                        'name' => $student->name,
-                        'roll_number' => $student->roll_number,
-                        'class' => $student->class ? [
-                            'id' => $student->class->id,
-                            'name' => $student->class->name,
-                            'section' => $student->class->section,
-                        ] : null,
-                        'relation' => $student->relation,
-                    ] : null,
-                ];
+        if ($request->has('class') && $request->class) {
+            $query->whereHas('student.class', function ($q) use ($request) {
+                $q->where('name', $request->class);
             });
+        }
+
+        $allParents = $query->get()->map(function ($parent) {
+            $student = $parent->student;
+
+            return [
+                'id' => $parent->id,
+                'user_id' => $parent->user_id,
+                'name' => $parent->name,
+                'email' => $parent->email,
+                'phone' => $parent->phone,
+                'occupation' => $parent->occupation,
+                'address' => $parent->address,
+                'relation' => $student ? $student->relation : null,
+                'user' => [
+                    'email' => $parent->user->email ?? null,
+                ],
+                'student' => $student ? [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'roll_number' => $student->roll_number,
+                    'class' => $student->class ? [
+                        'id' => $student->class->id,
+                        'name' => $student->class->name,
+                        'section' => $student->class->section,
+                    ] : null,
+                    'relation' => $student->relation,
+                ] : null,
+            ];
+        });
 
         $studentsWithoutParent = Student::with('class')
             ->whereNull('parent_id')
@@ -66,11 +72,12 @@ class ParentController extends Controller
 
         return inertia('admin/parents/index', [
             'parents' => [
-                'data' => $parents,
-                'total' => $parents->count(),
+                'data' => $allParents,
+                'total' => $allParents->count(),
             ],
             'classes' => $classes,
             'availableStudents' => $studentsWithoutParent,
+            'filters' => $request->only(['class']),
         ]);
     }
 

@@ -13,6 +13,7 @@ export function AppSidebar() {
     const userRole = auth?.user?.role;
     const allClasses = classes || [];
     const [studentsOpen, setStudentsOpen] = useState(false);
+    const [parentsOpen, setParentsOpen] = useState(false);
 
     const uniqueClassNames = [...new Set(allClasses.map((cls: { name: string }) => cls.name))].sort((a, b) => {
         const numA = parseInt(a.replace(/\D/g, ''));
@@ -57,13 +58,36 @@ export function AppSidebar() {
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
-                                <SidebarMenuButton asChild>
-                                    <Link href="/admin/parents">
-                                        <UsersRound className="h-5 w-5" />
-                                        <span>Parents</span>
-                                    </Link>
+                                <SidebarMenuButton onClick={() => setParentsOpen(!parentsOpen)} className="w-full cursor-pointer">
+                                    <UsersRound className="h-5 w-5" />
+                                    <span className="flex-1">Parents</span>
+                                    <ChevronDown className={`h-4 w-4 transition-transform ${parentsOpen ? 'rotate-180' : ''}`} />
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
+
+                            {parentsOpen && (
+                                <div className="ml-4 space-y-1">
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="text-sm">
+                                            <Link href="/admin/parents" className="text-slate-400 hover:text-white">
+                                                All Parents
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    {uniqueClassNames.map((className: string) => (
+                                        <SidebarMenuItem key={className}>
+                                            <SidebarMenuButton asChild className="text-sm">
+                                                <Link
+                                                    href={`/admin/parents?class=${encodeURIComponent(className)}`}
+                                                    className="text-slate-400 hover:text-white"
+                                                >
+                                                    {className}
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    ))}
+                                </div>
+                            )}
 
                             <SidebarMenuItem>
                                 <SidebarMenuButton onClick={() => setStudentsOpen(!studentsOpen)} className="w-full cursor-pointer">
