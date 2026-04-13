@@ -11,7 +11,7 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::with(['user', 'class', 'parents']);
+        $query = Student::with(['user', 'class', 'parent']);
 
         if ($request->has('search') && $request->search) {
             $query->where('name', 'like', '%'.$request->search.'%')
