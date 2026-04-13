@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, GraduationCap, Search, UserPlus, Users, UsersRound } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { ArrowLeft, Filter, GraduationCap, Search, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface Parent {
@@ -29,14 +29,21 @@ export default function ParentsIndex() {
             total: number;
         };
         classes: { id: number; name: string; section: string | null }[];
-        availableStudents: { id: number; name: string; roll_number: string; class: { name: string; section: string | null } }[];
     };
 
     const { parents, classes } = pageProps;
     const [search, setSearch] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
 
-    const { delete: destroy } = useForm({});
+    const avatarColors = [
+        'from-blue-500 to-blue-600',
+        'from-purple-500 to-purple-600',
+        'from-green-500 to-green-600',
+        'from-orange-500 to-orange-600',
+        'from-pink-500 to-pink-600',
+        'from-cyan-500 to-cyan-600',
+        'from-amber-500 to-amber-600',
+    ];
 
     const filteredParents = parents.data.filter((parent) => {
         if (!parent.student) return false;
@@ -64,22 +71,6 @@ export default function ParentsIndex() {
         {} as Record<string, Parent[]>,
     );
 
-    const handleDelete = (parentId: number) => {
-        if (confirm('Are you sure you want to delete this parent? The student will become unassigned.')) {
-            destroy(route('admin.parents.destroy', parentId));
-        }
-    };
-
-    const avatarColors = [
-        'from-blue-500 to-blue-600',
-        'from-purple-500 to-purple-600',
-        'from-green-500 to-green-600',
-        'from-orange-500 to-orange-600',
-        'from-pink-500 to-pink-600',
-        'from-cyan-500 to-cyan-600',
-        'from-amber-500 to-amber-600',
-    ];
-
     return (
         <AppLayout>
             <Head title="Parents" />
@@ -96,7 +87,7 @@ export default function ParentsIndex() {
                             </Link>
                             <div className="flex-1">
                                 <h1 className="text-3xl font-bold tracking-tight text-white">Parents Management</h1>
-                                <p className="mt-1 text-slate-400">Manage parents (One-to-One with students)</p>
+                                <p className="mt-1 text-slate-400">Manage parents linked to students by class</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Link
@@ -117,7 +108,7 @@ export default function ParentsIndex() {
                                         <p className="mt-1 text-3xl font-bold text-white">{parents.total}</p>
                                     </div>
                                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20">
-                                        <UsersRound className="h-6 w-6 text-blue-400" />
+                                        <Users className="h-6 w-6 text-blue-400" />
                                     </div>
                                 </div>
                             </div>
@@ -146,7 +137,7 @@ export default function ParentsIndex() {
                         </div>
                     </div>
 
-                    <div className="mb-6 overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
+                    <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
                         <div className="border-b border-slate-700/50 p-6">
                             <div className="flex flex-col gap-4 sm:flex-row">
                                 <div className="relative flex-1">
@@ -160,10 +151,11 @@ export default function ParentsIndex() {
                                     />
                                 </div>
                                 <div className="relative">
+                                    <Filter className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                     <select
                                         value={selectedClass}
                                         onChange={(e) => setSelectedClass(e.target.value)}
-                                        className="min-w-[180px] cursor-pointer appearance-none rounded-xl border border-slate-600/50 bg-slate-900/50 py-3 pr-10 pl-4 text-white transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                                        className="min-w-[180px] cursor-pointer appearance-none rounded-xl border border-slate-600/50 bg-slate-900/50 py-3 pr-10 pl-10 text-white transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
                                     >
                                         <option value="">All Classes</option>
                                         {classes.map((cls) => (
@@ -175,72 +167,67 @@ export default function ParentsIndex() {
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {Object.keys(parentsByClass).length === 0 ? (
-                        <div className="rounded-2xl border border-slate-700/50 bg-slate-800/50 p-16 backdrop-blur-sm">
-                            <div className="flex flex-col items-center">
-                                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-700/50">
-                                    <UsersRound className="h-10 w-10 text-slate-500" />
+                        {Object.keys(parentsByClass).length === 0 ? (
+                            <div className="p-16 text-center">
+                                <div className="flex flex-col items-center">
+                                    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-700/50">
+                                        <Users className="h-10 w-10 text-slate-500" />
+                                    </div>
+                                    <p className="text-lg font-medium text-slate-300">No parents found</p>
+                                    <p className="mt-1 text-sm text-slate-500">Try adjusting your search or filters</p>
                                 </div>
-                                <p className="text-lg font-medium text-slate-300">No parents found</p>
-                                <p className="mt-1 text-sm text-slate-500">Try adjusting your search or filters</p>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {Object.entries(parentsByClass)
-                                .sort((a, b) => {
-                                    const numA = parseInt(a[0].replace(/\D/g, '')) || 0;
-                                    const numB = parseInt(b[0].replace(/\D/g, '')) || 0;
-                                    return numA - numB;
-                                })
-                                .map(([className, classParents]) => (
-                                    <div
-                                        key={className}
-                                        className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm"
-                                    >
-                                        <div className="border-b border-slate-700/50 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20">
-                                                        <GraduationCap className="h-5 w-5 text-purple-400" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-white">{className}</h3>
-                                                        <p className="text-sm text-slate-400">
-                                                            {classParents.length} parent{classParents.length !== 1 ? 's' : ''}
-                                                        </p>
+                        ) : (
+                            <div className="space-y-6 p-6">
+                                {Object.entries(parentsByClass)
+                                    .sort((a, b) => {
+                                        const numA = parseInt(a[0].replace(/\D/g, '')) || 0;
+                                        const numB = parseInt(b[0].replace(/\D/g, '')) || 0;
+                                        return numA - numB;
+                                    })
+                                    .map(([className, classParents]) => (
+                                        <div key={className} className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/30">
+                                            <div className="border-b border-slate-700/50 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20">
+                                                            <GraduationCap className="h-5 w-5 text-purple-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-lg font-semibold text-white">{className}</h3>
+                                                            <p className="text-sm text-slate-400">
+                                                                {classParents.length} parent{classParents.length !== 1 ? 's' : ''}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full">
-                                                <thead>
-                                                    <tr className="bg-slate-900/50">
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                                            Parent
-                                                        </th>
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                                            Student
-                                                        </th>
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                                            Relation
-                                                        </th>
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                                            Contact
-                                                        </th>
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                                            Actions
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-700/50">
-                                                    {classParents.map((parent, index) => {
-                                                        return (
-                                                            <tr key={parent.id} className="group transition-all hover:bg-slate-700/30">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead>
+                                                        <tr className="bg-slate-800/50">
+                                                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                                                Parent
+                                                            </th>
+                                                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                                                Student
+                                                            </th>
+                                                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                                                Relation
+                                                            </th>
+                                                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                                                Contact
+                                                            </th>
+                                                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-700/50">
+                                                        {classParents.map((parent, index) => (
+                                                            <tr key={parent.id} className="transition-all hover:bg-slate-700/30">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-4">
                                                                         <div
@@ -305,37 +292,18 @@ export default function ParentsIndex() {
                                                                                 />
                                                                             </svg>
                                                                         </Link>
-                                                                        <button
-                                                                            onClick={() => handleDelete(parent.id)}
-                                                                            className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
-                                                                            title="Delete"
-                                                                        >
-                                                                            <svg
-                                                                                className="h-4 w-4 text-red-400"
-                                                                                fill="none"
-                                                                                stroke="currentColor"
-                                                                                viewBox="0 0 24 24"
-                                                                            >
-                                                                                <path
-                                                                                    strokeLinecap="round"
-                                                                                    strokeLinejoin="round"
-                                                                                    strokeWidth={2}
-                                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                                                />
-                                                                            </svg>
-                                                                        </button>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                        </div>
-                    )}
+                                    ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </AppLayout>
