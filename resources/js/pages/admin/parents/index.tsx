@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Filter, GraduationCap, Search, UserPlus, Users } from 'lucide-react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { ArrowLeft, Filter, GraduationCap, Search, UserPlus, Users, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface Parent {
@@ -28,13 +28,19 @@ export default function ParentsIndex() {
             data: Parent[];
             total: number;
         };
-        classes: { id: number; name: string; section: string | null }[];
+        classes: { name: string }[];
         filters: { class?: string };
     };
 
     const { parents, classes, filters } = pageProps;
     const [search, setSearch] = useState('');
     const [selectedClass, setSelectedClass] = useState(filters.class || '');
+
+    const handleDelete = (id: number) => {
+        if (confirm('Are you sure you want to delete this parent? This will also delete the associated user account.')) {
+            router.delete(route('admin.parents.destroy', id));
+        }
+    };
 
     const avatarColors = [
         'from-blue-500 to-blue-600',
@@ -160,7 +166,7 @@ export default function ParentsIndex() {
                                     >
                                         <option value="">All Classes</option>
                                         {classes.map((cls) => (
-                                            <option key={cls.id} value={cls.name}>
+                                            <option key={cls.name} value={cls.name}>
                                                 {cls.name}
                                             </option>
                                         ))}
@@ -275,24 +281,26 @@ export default function ParentsIndex() {
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <Link
+                                                                            href={route('admin.parents.show', parent.id)}
+                                                                            className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
+                                                                            title="View"
+                                                                        >
+                                                                            <Eye className="h-4 w-4 text-slate-400" />
+                                                                        </Link>
+                                                                        <Link
                                                                             href={route('admin.parents.edit', parent.id)}
                                                                             className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
                                                                             title="Edit"
                                                                         >
-                                                                            <svg
-                                                                                className="h-4 w-4 text-slate-400"
-                                                                                fill="none"
-                                                                                stroke="currentColor"
-                                                                                viewBox="0 0 24 24"
-                                                                            >
-                                                                                <path
-                                                                                    strokeLinecap="round"
-                                                                                    strokeLinejoin="round"
-                                                                                    strokeWidth={2}
-                                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                                                                />
-                                                                            </svg>
+                                                                            <Pencil className="h-4 w-4 text-slate-400" />
                                                                         </Link>
+                                                                        <button
+                                                                            onClick={() => handleDelete(parent.id)}
+                                                                            className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4 text-red-400" />
+                                                                        </button>
                                                                     </div>
                                                                 </td>
                                                             </tr>

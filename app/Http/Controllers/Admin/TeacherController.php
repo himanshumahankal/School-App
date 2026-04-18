@@ -19,10 +19,31 @@ class TeacherController extends Controller
             $query->where('name', 'like', '%'.$request->search.'%');
         }
 
-        $teachers = $query->orderBy('created_at', 'desc')->paginate(10);
+        $allTeachers = $query->orderBy('created_at', 'desc')->get()->map(function ($teacher) {
+            return [
+                'id' => $teacher->id,
+                'name' => $teacher->name,
+                'employee_id' => $teacher->employee_id,
+                'qualification' => $teacher->qualification,
+                'phone' => $teacher->phone,
+                'joining_date' => $teacher->joining_date,
+                'user' => [
+                    'email' => $teacher->user->email ?? null,
+                ],
+                'subjects' => $teacher->subjects->map(function ($s) {
+                    return ['id' => $s->id, 'name' => $s->name];
+                }),
+                'classes' => $teacher->classes->map(function ($c) {
+                    return ['id' => $c->id, 'name' => $c->name, 'section' => $c->section];
+                }),
+            ];
+        });
 
         return inertia('admin/teachers/index', [
-            'teachers' => $teachers,
+            'teachers' => [
+                'data' => $allTeachers,
+                'total' => $allTeachers->count(),
+            ],
             'filters' => $request->only(['search']),
         ]);
     }

@@ -1,23 +1,25 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Plus, Pencil, Trash2, Search, ArrowLeft } from 'lucide-react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { ArrowLeft, BookOpen, GraduationCap, Search, UserPlus, Users, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+
+interface Teacher {
+    id: number;
+    name: string;
+    employee_id: string;
+    qualification: string | null;
+    phone: string | null;
+    joining_date: string;
+    user: { email: string | null };
+    subjects: { id: number; name: string }[];
+    classes: { id: number; name: string; section: string | null }[];
+}
 
 export default function TeachersIndex() {
     const pageProps = usePage().props as unknown as {
         teachers: {
-            data: {
-                id: number;
-                name: string;
-                employee_id: string;
-                qualification: string | null;
-                user: { email: string };
-                subjects: { id: number; name: string }[];
-                classes: { id: number; name: string; section: string | null }[];
-            }[];
-            links: { url: string | null; label: string; active: boolean }[];
+            data: Teacher[];
             total: number;
-            last_page: number;
         };
         filters: { search?: string };
     };
@@ -25,169 +27,238 @@ export default function TeachersIndex() {
     const { teachers, filters } = pageProps;
     const [search, setSearch] = useState(filters.search || '');
 
+    const handleDelete = (id: number) => {
+        if (confirm('Are you sure you want to delete this teacher? This will also delete the associated user account.')) {
+            router.delete(route('admin.teachers.destroy', id));
+        }
+    };
+
+    const avatarColors = [
+        'from-blue-500 to-blue-600',
+        'from-purple-500 to-purple-600',
+        'from-green-500 to-green-600',
+        'from-orange-500 to-orange-600',
+        'from-pink-500 to-pink-600',
+        'from-cyan-500 to-cyan-600',
+        'from-amber-500 to-amber-600',
+    ];
+
+    const filteredTeachers = teachers.data.filter((teacher) => {
+        const matchesSearch =
+            teacher.name.toLowerCase().includes(search.toLowerCase()) ||
+            teacher.employee_id.toLowerCase().includes(search.toLowerCase()) ||
+            (teacher.user.email?.toLowerCase() || '').includes(search.toLowerCase());
+
+        return matchesSearch;
+    });
+
+    const totalSubjects = new Set(teachers.data.flatMap(t => t.subjects.map(s => s.name))).size;
+    const totalClasses = new Set(teachers.data.flatMap(t => t.classes.map(c => c.name))).size;
+
     return (
         <AppLayout>
-            <Head title="Manage Teachers" />
+            <Head title="Teachers" />
 
-            <div className="p-6 max-w-7xl mx-auto bg-slate-900 min-h-screen">
-                <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Link
-                            href="/admin/dashboard"
-                            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-                        >
-                            <ArrowLeft className="h-5 w-5 text-slate-400" />
-                        </Link>
-                        <h1 className="text-3xl font-bold text-white">Teachers</h1>
-                    </div>
-                    <p className="text-slate-400 ml-11">Manage your school teachers</p>
-                </div>
-
-                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-                    <div className="p-6 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Search teachers..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                <div className="mx-auto max-w-7xl p-6">
+                    <div className="mb-8">
+                        <div className="mb-6 flex items-center gap-4">
+                            <Link
+                                href="/admin/dashboard"
+                                className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-2.5 transition-all hover:border-slate-600 hover:bg-slate-700"
+                            >
+                                <ArrowLeft className="h-5 w-5 text-slate-400" />
+                            </Link>
+                            <div className="flex-1">
+                                <h1 className="text-3xl font-bold tracking-tight text-white">Teachers Management</h1>
+                                <p className="mt-1 text-slate-400">Manage and view all faculty members</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Link
+                                    href="/admin/teachers/create"
+                                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-cyan-500"
+                                >
+                                    <UserPlus className="h-4 w-4" />
+                                    Add Teacher
+                                </Link>
+                            </div>
                         </div>
-                        <Link
-                            href="/admin/teachers/create"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors"
-                        >
-                            <Plus className="h-5 w-5" />
-                            Add Teacher
-                        </Link>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-600/20 to-blue-800/20 p-5 backdrop-blur-sm">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-blue-300">Total Teachers</p>
+                                        <p className="mt-1 text-3xl font-bold text-white">{teachers.total}</p>
+                                    </div>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20">
+                                        <Users className="h-6 w-6 text-blue-400" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-600/20 to-purple-800/20 p-5 backdrop-blur-sm">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-purple-300">Assigned Classes</p>
+                                        <p className="mt-1 text-3xl font-bold text-white">{totalClasses}</p>
+                                    </div>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20">
+                                        <GraduationCap className="h-6 w-6 text-purple-400" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-600/20 to-green-800/20 p-5 backdrop-blur-sm">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-green-300">Total Subjects</p>
+                                        <p className="mt-1 text-3xl font-bold text-white">{totalSubjects}</p>
+                                    </div>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/20">
+                                        <BookOpen className="h-6 w-6 text-green-400" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-600/20 to-amber-800/20 p-5 backdrop-blur-sm">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-amber-300">Filtered Results</p>
+                                        <p className="mt-1 text-3xl font-bold text-white">{filteredTeachers.length}</p>
+                                    </div>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/20">
+                                        <Search className="h-6 w-6 text-amber-400" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-900">
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">Teacher</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">Employee ID</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">Email</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">Subjects</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">Classes</th>
-                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-300">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {teachers.data.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                                                    <Search className="h-8 w-8 text-slate-400" />
-                                                </div>
-                                                <p className="text-slate-300 font-medium">No teachers found</p>
-                                                <p className="text-slate-500 text-sm mt-1">Try adjusting your search or add a new teacher</p>
-                                            </div>
-                                        </td>
+                    <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
+                        <div className="border-b border-slate-700/50 p-6">
+                            <div className="flex flex-col gap-4 sm:flex-row">
+                                <div className="relative flex-1">
+                                    <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name, employee ID or email..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        className="w-full rounded-xl border border-slate-600/50 bg-slate-900/50 py-3 pr-4 pl-12 text-white placeholder-slate-400 transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/50 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-slate-900/50">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                            Teacher
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                            Employee ID
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                            Subjects
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                            Classes
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                            Actions
+                                        </th>
                                     </tr>
-                                ) : (
-                                    teachers.data.map((teacher) => (
-                                        <tr key={teacher.id} className="hover:bg-slate-700 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                                                        <span className="text-white font-semibold text-sm">
-                                                            {teacher.name.charAt(0).toUpperCase()}
-                                                        </span>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700/50">
+                                    {filteredTeachers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-700/50">
+                                                        <Search className="h-10 w-10 text-slate-500" />
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-white">{teacher.name}</p>
-                                                        <p className="text-sm text-slate-400">{teacher.qualification || 'N/A'}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="font-mono text-sm bg-slate-900 px-2 py-1 rounded text-slate-300">{teacher.employee_id}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-300">{teacher.user.email}</td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {teacher.subjects.slice(0, 2).map((s) => (
-                                                        <span key={s.id} className="px-2.5 py-1 bg-blue-900/50 text-blue-300 text-xs font-medium rounded-full border border-blue-700">
-                                                            {s.name}
-                                                        </span>
-                                                    ))}
-                                                    {teacher.subjects.length > 2 && (
-                                                        <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
-                                                            +{teacher.subjects.length - 2}
-                                                        </span>
-                                                    )}
-                                                    {teacher.subjects.length === 0 && (
-                                                        <span className="text-slate-500 text-sm">No subjects</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {teacher.classes.slice(0, 2).map((c) => (
-                                                        <span key={c.id} className="px-2.5 py-1 bg-green-900/50 text-green-300 text-xs font-medium rounded-full border border-green-700">
-                                                            {c.name}{c.section ? ` - ${c.section}` : ''}
-                                                        </span>
-                                                    ))}
-                                                    {teacher.classes.length > 2 && (
-                                                        <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
-                                                            +{teacher.classes.length - 2}
-                                                        </span>
-                                                    )}
-                                                    {teacher.classes.length === 0 && (
-                                                        <span className="text-slate-500 text-sm">No classes</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Link
-                                                        href={`/admin/teachers/${teacher.id}/edit`}
-                                                        className="p-2 text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Pencil className="h-5 w-5" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (confirm('Are you sure you want to delete this teacher?')) {
-                                                                window.location.href = `/admin/teachers/${teacher.id}`;
-                                                            }
-                                                        }}
-                                                        className="p-2 text-red-400 hover:bg-slate-700 rounded-lg transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="h-5 w-5" />
-                                                    </button>
+                                                    <p className="text-lg font-medium text-slate-300">No teachers found</p>
+                                                    <p className="mt-1 text-sm text-slate-500">Try adjusting your search</p>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {teachers.last_page > 1 && (
-                        <div className="p-4 border-t border-slate-700 flex justify-center gap-2">
-                            {teachers.links.map((link, index) => (
-                                <Link
-                                    key={index}
-                                    href={link.url || '#'}
-                                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                        link.active
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
+                                    ) : (
+                                        filteredTeachers.map((teacher, index) => (
+                                            <tr key={teacher.id} className="transition-all hover:bg-slate-700/30">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div
+                                                            className={`h-11 w-11 rounded-xl bg-gradient-to-br ${avatarColors[index % 7]} flex items-center justify-center text-sm font-semibold text-white shadow-lg`}
+                                                        >
+                                                            {teacher.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-white">{teacher.name}</p>
+                                                            <p className="text-sm text-slate-400">{teacher.user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="font-mono text-sm bg-slate-900/80 px-3 py-1.5 rounded-lg text-slate-300 border border-slate-700/50">
+                                                        {teacher.employee_id}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {teacher.subjects.map((s) => (
+                                                            <span key={s.id} className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-300">
+                                                                {s.name}
+                                                            </span>
+                                                        ))}
+                                                        {teacher.subjects.length === 0 && (
+                                                            <span className="text-xs text-slate-500 italic">No Subjects</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {teacher.classes.map((c) => (
+                                                            <span key={c.id} className="rounded-lg border border-green-500/30 bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-300">
+                                                                {c.name}{c.section ? ` - ${c.section}` : ''}
+                                                            </span>
+                                                        ))}
+                                                        {teacher.classes.length === 0 && (
+                                                            <span className="text-xs text-slate-500 italic">No Classes</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Link
+                                                            href={route('admin.teachers.show', teacher.id)}
+                                                            className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
+                                                            title="View"
+                                                        >
+                                                            <Eye className="h-4 w-4 text-slate-400" />
+                                                        </Link>
+                                                        <Link
+                                                            href={route('admin.teachers.edit', teacher.id)}
+                                                            className="rounded-lg p-2 transition-colors hover:bg-slate-600/50"
+                                                            title="Edit"
+                                                        >
+                                                            <Pencil className="h-4 w-4 text-slate-400" />
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => handleDelete(teacher.id)}
+                                                            className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-red-400" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </AppLayout>

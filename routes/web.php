@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('chat', [ChatController::class, 'index'])->name('chat');
 
         Route::resource('teachers', TeacherController::class);
-        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::resource('students', StudentController::class);
         Route::resource('parents', ParentController::class);
     });
 

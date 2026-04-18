@@ -15,7 +15,7 @@ class ParentController extends Controller
 {
     public function index(Request $request)
     {
-        $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'section']);
+        $classes = SchoolClass::select('name')->distinct()->orderBy('name')->get();
 
         $query = ParentModel::with(['user', 'student.class']);
 
