@@ -56,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('chat', [ChatController::class, 'index'])->name('chat');
     });
 
-    Route::post('chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::get('chat/group/{id}', [ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::middleware(['auth'])->group(function () {
+        Route::get('chat/groups', [ChatController::class, 'getGroups'])->name('chat.groups');
+        Route::post('chat/send', [ChatController::class, 'sendMessage'])->name('chat.send')->middleware('csrf-exempt');
+        Route::post('chat/like', [ChatController::class, 'toggleLike'])->name('chat.like')->middleware('csrf-exempt');
+        Route::get('chat/group/{id}', [ChatController::class, 'getMessages'])->name('chat.messages');
+    });
 });
