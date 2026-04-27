@@ -1,6 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Users } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { 
+    BookOpen, Calendar, CheckSquare, Clock, FileText, FolderOpen, 
+    GraduationCap, MessageSquare, MoreHorizontal, Users, UserCheck, 
+    Video, FileBox, TrendingUp, Bell, ClipboardList, BarChart3
+} from 'lucide-react';
 
 interface Subject {
     id: number;
@@ -11,124 +15,136 @@ interface Class {
     id: number;
     name: string;
     section: string | null;
+    studentCount?: number;
 }
 
 interface PageProps {
     auth: { user: { name: string } };
+    stats: {
+        totalStudents: number;
+        todayAttendance: number;
+        pendingAssignments: number;
+        totalMaterials: number;
+    };
     subjects: Subject[];
     classes: Class[];
 }
 
 export default function TeacherDashboard() {
-    const { auth, subjects, classes } = usePage<PageProps>().props;
+    const { auth, stats, subjects, classes } = usePage<PageProps>().props;
     const userName = auth?.user?.name || 'Teacher';
+
+    const attendancePercentage = stats.totalStudents > 0 
+        ? Math.round((stats.todayAttendance / stats.totalStudents) * 100) 
+        : 0;
+
+    const quickActions = [
+        { icon: UserCheck, label: 'Mark Attendance', href: '/teacher/attendance', color: 'green' },
+        { icon: BarChart3, label: 'Analytics', href: '/teacher/charts', color: 'blue' },
+        { icon: FolderOpen, label: 'Upload Material', href: '/teacher/materials', color: 'purple' },
+        { icon: ClipboardList, label: 'Assignments', href: '/teacher/assignments', color: 'amber' },
+    ];
 
     return (
         <AppLayout>
             <Head title="Teacher Dashboard" />
-            <div className="min-h-screen bg-slate-900 p-6">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white">Welcome, {userName}!</h1>
-                    <p className="mt-1 text-slate-400">Teacher Portal Dashboard</p>
+                    <h1 className="text-3xl font-bold text-white">Welcome back, {userName}!</h1>
+                    <p className="mt-1 text-slate-400">Here's what's happening in your classes today</p>
                 </div>
 
-                <div className="mb-8 overflow-hidden rounded-2xl border border-slate-700 bg-slate-800">
-                    <div className="flex items-center gap-3 border-b border-slate-700 p-6">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600">
-                            <BookOpen className="h-5 w-5 text-white" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <Link
+                        href="/teacher/students"
+                        className="group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 p-6 backdrop-blur-sm transition-all hover:border-blue-500/50"
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                        <div className="relative flex items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-500/20">
+                                <GraduationCap className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-blue-300 font-medium">Total Students</p>
+                                <p className="text-3xl font-bold text-white">{stats?.totalStudents || 0}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="font-semibold text-white">My Assignment</h2>
-                            <p className="text-sm text-slate-400">Subjects and classes assigned to you</p>
-                        </div>
-                    </div>
+                    </Link>
 
-                    <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-                        <div className="space-y-4">
-                            <h3 className="flex items-center gap-2 text-lg font-medium text-white">
-                                <BookOpen className="h-5 w-5 text-blue-400" />
-                                My Subjects
-                            </h3>
-                            {subjects && subjects.length > 0 ? (
-                                <div className="space-y-2">
-                                    {subjects.map((subject) => (
-                                        <div key={subject.id} className="flex items-center gap-3 rounded-xl border border-slate-600 bg-slate-900 p-4">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/20">
-                                                <BookOpen className="h-4 w-4 text-blue-400" />
-                                            </div>
-                                            <span className="text-slate-300">{subject.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="rounded-xl border border-slate-600 bg-slate-900 p-4 text-slate-500">No subjects assigned yet</p>
-                            )}
+                    <Link
+                        href="/teacher/attendance"
+                        className="group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 p-6 backdrop-blur-sm transition-all hover:border-green-500/50"
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                        <div className="relative flex items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-600 to-green-700 shadow-lg shadow-green-500/20">
+                                <UserCheck className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-green-300 font-medium">Today's Present</p>
+                                <p className="text-3xl font-bold text-white">{stats?.todayAttendance || 0}</p>
+                                <p className="text-xs text-green-400/70">{attendancePercentage}% attendance</p>
+                            </div>
                         </div>
+                    </Link>
 
-                        <div className="space-y-4">
-                            <h3 className="flex items-center gap-2 text-lg font-medium text-white">
-                                <Users className="h-5 w-5 text-green-400" />
-                                My Classes
-                            </h3>
-                            {classes && classes.length > 0 ? (
-                                <div className="space-y-2">
-                                    {classes.map((cls) => (
-                                        <div key={cls.id} className="flex items-center gap-3 rounded-xl border border-slate-600 bg-slate-900 p-4">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-600/20">
-                                                <Users className="h-4 w-4 text-green-400" />
-                                            </div>
-                                            <span className="text-slate-300">
-                                                {cls.name}
-                                                {cls.section ? ` - Section ${cls.section}` : ''}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="rounded-xl border border-slate-600 bg-slate-900 p-4 text-slate-500">No classes assigned yet</p>
-                            )}
+                    <Link
+                        href="/teacher/assignments"
+                        className="group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 p-6 backdrop-blur-sm transition-all hover:border-amber-500/50"
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                        <div className="relative flex items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-600 to-amber-700 shadow-lg shadow-amber-500/20">
+                                <ClipboardList className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-amber-300 font-medium">Pending</p>
+                                <p className="text-3xl font-bold text-white">{stats?.pendingAssignments || 0}</p>
+                                <p className="text-xs text-amber-400/70">assignments</p>
+                            </div>
                         </div>
-                    </div>
+                    </Link>
+
+                    <Link
+                        href="/teacher/materials"
+                        className="group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 p-6 backdrop-blur-sm transition-all hover:border-purple-500/50"
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                        <div className="relative flex items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg shadow-purple-500/20">
+                                <FolderOpen className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-purple-300 font-medium">Materials</p>
+                                <p className="text-3xl font-bold text-white">{stats?.totalMaterials || 0}</p>
+                                <p className="text-xs text-purple-400/70">uploaded</p>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    <div className="group rounded-2xl border border-slate-700 bg-slate-800 p-6 transition-all duration-200 hover:border-blue-500">
-                        <div className="flex items-center gap-4">
-                            <div className="rounded-2xl bg-blue-600 p-4 group-hover:bg-blue-500">
-                                <BookOpen className="h-8 w-8 text-white" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-slate-400">Total Subjects</p>
-                                <p className="text-2xl font-bold text-white">{subjects?.length || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="group rounded-2xl border border-slate-700 bg-slate-800 p-6 transition-all duration-200 hover:border-green-500">
-                        <div className="flex items-center gap-4">
-                            <div className="rounded-2xl bg-green-600 p-4 group-hover:bg-green-500">
-                                <Users className="h-8 w-8 text-white" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-slate-400">Total Classes</p>
-                                <p className="text-2xl font-bold text-white">{classes?.length || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="group rounded-2xl border border-slate-700 bg-slate-800 p-6 transition-all duration-200 hover:border-purple-500">
-                        <div className="flex items-center gap-4">
-                            <div className="rounded-2xl bg-purple-600 p-4 group-hover:bg-purple-500">
-                                <Calendar className="h-8 w-8 text-white" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-slate-400">Today</p>
-                                <p className="text-lg font-bold text-white">
-                                    {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {quickActions.map((action, index) => {
+                        const Icon = action.icon;
+                        const colors: Record<string, string> = {
+                            green: 'from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 border-green-500/30',
+                            purple: 'from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 border-purple-500/30',
+                            amber: 'from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 border-amber-500/30',
+                            blue: 'from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-blue-500/30',
+                        };
+                        return (
+                            <Link
+                                key={index}
+                                href={action.href}
+                                className={`flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/50 p-4 transition-all hover:border-${action.color}-500/50 hover:bg-slate-700/50`}
+                            >
+                                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${colors[action.color]} shadow-lg`}>
+                                    <Icon className="h-5 w-5 text-white" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-300">{action.label}</span>
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
         </AppLayout>

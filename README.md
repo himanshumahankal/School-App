@@ -94,27 +94,6 @@ Copy the `.env.example` file to `.env`:
 cp .env.example .env
 ```
 
-Or manually create a `.env` file with the following key variables:
-
-```env
-APP_NAME="V Y Kothari English School"
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=school_management
-DB_USERNAME=root
-DB_PASSWORD=
-
-BROADCAST_DRIVER=log
-CACHE_DRIVER=file
-FILESYSTEM_DISK=local
-QUEUE_CONNECTION=sync
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-```
-
 ### 5. Create Database
 
 Open MySQL and create a new database:
@@ -195,36 +174,6 @@ php artisan view:clear
 
 ```bash
 npm run build
-```
-
-## Project Structure
-
-```
-School-App/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Admin/          # Admin panel controllers
-│   │   │   ├── Parent/          # Parent portal controllers
-│   │   │   ├── Student/         # Student portal controllers
-│   │   │   ├── Teacher/         # Teacher portal controllers
-│   │   │   └── Chat/           # Chat functionality
-│   │   └── Middleware/          # Custom middleware
-│   └── Models/                  # Eloquent models
-├── database/
-│   ├── migrations/              # Database migrations
-│   └── seeders/                 # Database seeders
-├── resources/
-│   └── js/
-│       └── pages/
-│           ├── admin/           # Admin panel pages
-│           ├── parent/          # Parent portal pages
-│           ├── student/         # Student portal pages
-│           ├── teacher/         # Teacher portal pages
-│           └── auth/            # Authentication pages
-├── routes/
-│   └── web.php                  # Web routes
-└── tests/                       # Test files
 ```
 
 ## Screenshots

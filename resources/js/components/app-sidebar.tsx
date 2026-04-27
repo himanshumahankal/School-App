@@ -1,7 +1,7 @@
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, CreditCard, GraduationCap, LayoutDashboard, MessageCircle, Users, UsersRound } from 'lucide-react';
+import { ChevronDown, CreditCard, GraduationCap, LayoutDashboard, MessageCircle, Users, UsersRound, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 
@@ -54,6 +54,37 @@ export function AppSidebar() {
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+
+                    {userRole === 'teacher' && (
+                        <>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton asChild>
+                                    <Link href="/teacher/students">
+                                        <GraduationCap className="h-5 w-5" />
+                                        <span>Students</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton asChild>
+                                    <Link href="/teacher/attendance">
+                                        <Users className="h-5 w-5" />
+                                        <span>Attendance</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton asChild>
+                                    <Link href="/teacher/materials">
+                                        <BookOpen className="h-5 w-5" />
+                                        <span>Materials</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </>
+                    )}
 
                     {userRole === 'admin' && (
                         <>
