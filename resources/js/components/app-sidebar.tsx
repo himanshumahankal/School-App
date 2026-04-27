@@ -1,7 +1,7 @@
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, GraduationCap, LayoutDashboard, MessageCircle, Users, UsersRound } from 'lucide-react';
+import { ChevronDown, CreditCard, GraduationCap, LayoutDashboard, MessageCircle, Users, UsersRound } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 
@@ -129,6 +129,15 @@ export function AppSidebar() {
                                     ))}
                                 </div>
                             )}
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton asChild>
+                                    <Link href="/admin/fees">
+                                        <CreditCard className="h-5 w-5" />
+                                        <span>Fees</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
                         </>
                     )}
                 </SidebarMenu>

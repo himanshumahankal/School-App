@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FeeController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\TeacherController;
@@ -39,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('teachers', TeacherController::class);
         Route::resource('students', StudentController::class);
         Route::resource('parents', ParentController::class);
+        Route::resource('fees', FeeController::class);
     });
 
     Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {

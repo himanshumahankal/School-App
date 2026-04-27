@@ -90,7 +90,8 @@ class SchoolSeeder extends Seeder
             'admission_date' => now(),
         ]);
 
-        $testStudent->parents()->attach($parent->id, ['relation' => 'father']);
+        $testStudent->parent()->associate($parent);
+        $testStudent->save();
 
         $studentNames = [
             'Aarav Patel', 'Aadhira Sharma', 'Aarush Gupta', 'Ananya Singh', 'Arjun Verma',
@@ -142,7 +143,8 @@ class SchoolSeeder extends Seeder
                 ]);
 
                 if ($studentIndex % 3 == 0) {
-                    $student->parents()->attach($parent->id, ['relation' => 'father']);
+                    $student->parent()->associate($parent);
+                    $student->save();
                 }
 
                 $rollNumber++;
