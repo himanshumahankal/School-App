@@ -117,12 +117,27 @@ class ChatController extends Controller
         ]);
 
         $user = Auth::user();
+        
+        $chatGroup = \App\Models\ChatGroup::find($request->group_id);
+        
+        if (!$chatGroup) {
+            abort(404, 'Group not found');
+        }
+        
         $isMember = ChatGroupMember::where('chat_group_id', $request->group_id)
             ->where('user_id', $user->id)
             ->exists();
 
-        if (! $isMember) {
+        if (!$isMember) {
             abort(403, 'You are not a member of this group');
+        }
+        
+        if ($chatGroup->permission === 'broadcast' && $user->role !== 'admin' && $user->role !== 'teacher') {
+            abort(403, 'Only teachers can post in this broadcast group');
+        }
+        
+        if ($chatGroup->permission === 'readonly' && $user->role === 'student') {
+            abort(403, 'Students cannot post in this group');
         }
 
         $message = ChatMessage::create([

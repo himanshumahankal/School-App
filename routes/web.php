@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ChatGroupController;
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\FeeController;
 use App\Http\Controllers\Admin\ParentController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Chat\ChatController;
 use App\Http\Controllers\Teacher\ChartController;
+use App\Http\Controllers\Teacher\MaterialController;
 use App\Http\Controllers\Teacher\TeacherStudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -59,6 +61,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('students', AdminStudentController::class);
         Route::resource('parents', ParentController::class);
         Route::resource('fees', FeeController::class);
+        Route::resource('chat-groups', ChatGroupController::class);
     });
 
     Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(function () {
@@ -90,9 +93,9 @@ Route::middleware(['auth'])->group(function () {
         })->name('dashboard');
         
         Route::get('charts', [ChartController::class, 'index'])->name('charts');
-        Route::get('students', [TeacherStudentController::class, 'index'])->name('students');
+        Route::resource('students', TeacherStudentController::class)->except(['show']);
         Route::get('attendance', fn () => Inertia::render('teacher/attendance'))->name('attendance');
-        Route::get('materials', fn () => Inertia::render('teacher/materials'))->name('materials');
+        Route::resource('materials', MaterialController::class);
         Route::get('assignments', fn () => Inertia::render('teacher/assignments'))->name('assignments');
         
         Route::get('chat', [ChatController::class, 'index'])->name('chat');

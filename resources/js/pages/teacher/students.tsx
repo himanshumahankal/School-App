@@ -2,7 +2,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { 
     ArrowLeft, Search, Filter, GraduationCap, Users, 
-    Phone, Mail, Calendar, Shield, Eye, EyeOff
+    Phone, Mail, Calendar, Shield, Eye, EyeOff,
+    Plus, Pencil, Trash2
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -80,6 +81,13 @@ export default function TeacherStudents() {
                         <h1 className="text-3xl font-bold text-white">My Students</h1>
                         <p className="mt-1 text-slate-400">Students in your assigned classes</p>
                     </div>
+                    <Link
+                        href="/teacher/students/create"
+                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-5 py-2.5 font-medium text-white"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add Student
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -189,12 +197,15 @@ export default function TeacherStudents() {
                                     <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
                                         Contact
                                     </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700/50">
                                 {filteredStudents.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-16 text-center">
+                                        <td colSpan={7} className="px-6 py-16 text-center">
                                             <div className="flex flex-col items-center">
                                                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-700/50">
                                                     <Search className="h-10 w-10 text-slate-500" />
@@ -272,6 +283,28 @@ export default function TeacherStudents() {
                                                         ) : (
                                                             <EyeOff className="h-4 w-4 text-slate-600" />
                                                         )}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Link
+                                                        href={`/teacher/students/${student.id}/edit`}
+                                                        className="rounded-lg p-2 transition-colors hover:bg-blue-500/20"
+                                                        title="Edit"
+                                                    >
+                                                        <Pencil className="h-4 w-4 text-blue-400" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm(`Delete ${student.name}?`)) {
+                                                                router.delete(`/teacher/students/${student.id}`);
+                                                            }
+                                                        }}
+                                                        className="rounded-lg p-2 transition-colors hover:bg-red-500/20"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-400" />
                                                     </button>
                                                 </div>
                                             </td>

@@ -10,7 +10,7 @@ class Material extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subject_id', 'class_id', 'title', 'description', 'file_path', 'file_type'];
+    protected $fillable = ['subject_id', 'class_id', 'title', 'description', 'file_path', 'file_type', 'video_url'];
 
     public function subject(): BelongsTo
     {
